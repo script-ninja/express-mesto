@@ -1,5 +1,5 @@
 {
-  "name": "project-express-mesto",
+  "name": "express-mesto",
   "version": "1.0.0",
   "description": "Сервис публикации фотографий",
   "main": "index.js",
@@ -7,5 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "script-ninja",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-react": "^7.22.0"
+  }
 }
