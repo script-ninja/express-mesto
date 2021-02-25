@@ -1,10 +1,11 @@
 const path = require('path');
+
 const { PORT = 3000 } = process.env;
+const express = require('express');
 const sendUsers = require('./routes/users');
 const sendCards = require('./routes/cards');
 const sendNotFound = require('./routes/notFound');
 
-const express = require('express');
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
