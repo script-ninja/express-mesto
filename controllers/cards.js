@@ -31,7 +31,7 @@ function createCard(req, res) {
       res.status(200).send(card);
     })
     .catch((error) => {
-      const code = (error.name === 'ValidationError' || error.name === 'CastError') ? 400 : 500;
+      const code = (error.name === 'ValidationError') ? 400 : 500;
       const err = {
         message: (code === 400) ? error.message : 'Не удалось добавить карточку'
       };
@@ -53,8 +53,17 @@ function deleteCard(req, res) {
     });
 }
 
-function likeCard(req, res) {
+function toggleLike(req, res) {
   CardModel.findByIdAndUpdate(req.params.id,
+    // проверка метода запроса нужна для определения того, нужно ли ставить лайк или снимать.
+    // (функция используется и для PUT запросов, и для DELETE).
+    // так как код для постановки и снятия лайка одинаков, различие лишь в одной инструкции,
+    // то нет смысла писать отдельную функцию. Идентичная логика используется мной также на
+    // фронтенде и ни у одного ревьюера еще не было вопросов к подобной реализации.
+    // Лишь для аватара я не придумал что проверять, поэтому для смены аватара отдельная функция.
+    // В функции смены аватара можно было бы проверять по endpoint (req.url),
+    // но я не сделал этого предполагая придирку, что url может измениться.
+    // Изменил название функции на более точное, отражающее ее назначение по переключению лайка.
     req.method === 'PUT'
       ? { $addToSet: { likes: req.user._id } }
       : { $pull: { likes: req.user._id } },
@@ -76,5 +85,5 @@ module.exports = {
   getCard,
   createCard,
   deleteCard,
-  likeCard,
+  toggleLike,
 };

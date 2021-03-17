@@ -30,7 +30,7 @@ function createUser(req, res) {
       res.status(200).send(user);
     })
     .catch((error) => {
-      const code = (error.name === 'ValidationError' || error.name === 'CastError') ? 400 : 500;
+      const code = (error.name === 'ValidationError') ? 400 : 500;
       const err = {
         message: (code === 400) ? error.message : 'Не удалось добавить пользователя'
       };
