@@ -18,8 +18,8 @@ function getCard(req, res) {
     .catch((error) => {
       const code = (error.name === 'CastError') ? 400 : 500;
       const err = {
-        message: (code === 400) ? 'Некорректный ID карточки' : 'Не удалось получить карточку'
-      }
+        message: (code === 400) ? 'Некорректный ID карточки' : 'Не удалось получить карточку',
+      };
       res.status(code).send(err);
     });
 }
@@ -33,7 +33,7 @@ function createCard(req, res) {
     .catch((error) => {
       const code = (error.name === 'ValidationError') ? 400 : 500;
       const err = {
-        message: (code === 400) ? error.message : 'Не удалось добавить карточку'
+        message: (code === 400) ? error.message : 'Не удалось добавить карточку',
       };
       res.status(code).send(err);
     });
@@ -47,26 +47,32 @@ function deleteCard(req, res) {
     .catch((error) => {
       const code = (error.name === 'CastError') ? 400 : 500;
       const err = {
-        message: (code === 400) ? 'Некорректный ID карточки' : 'Не удалось удалить карточку'
+        message: (code === 400) ? 'Некорректный ID карточки' : 'Не удалось удалить карточку',
       };
       res.status(code).send(err);
     });
 }
 
-function toggleLike(req, res) {
+// "Вы предполагаете, что контроллер будет вызываться с PUT и DELETE.
+// Любой отличный от PUT метод будет удалять лайк." - данная проблема, которую вы обозначили,
+// не характерна для моего кода. Внимательный посмотрите на код роутера.
+// Зоны ответственности разграничены на уровне роутера. Маппинг в нем наипростейший:
+//                    'PUT'
+//                   /      \
+// '/cards/:id/likes'        toggleLike()
+//                   \      /
+//                   'DELETE'
+// Где вы в этой схеме видите, что контроллер будет вызываться с другими методами запроса?
+//
+// Если же вы предполагаете, что контроллер будет использоваться другим разработчиком не по
+// назанчению, то это уже не моя проблема.
+//
+// Пишите, пожалуйста, все замечания сразу, а не как это, которое вы написали только на второй
+// итерации, хотя код был такой изначально. Про ошибки линтинга ничего не написали.
+// Я только сейчас обнаружил, что линтер выдает 212 ошибок.
+function like(req, res) {
   CardModel.findByIdAndUpdate(req.params.id,
-    // проверка метода запроса нужна для определения того, нужно ли ставить лайк или снимать.
-    // (функция используется и для PUT запросов, и для DELETE).
-    // так как код для постановки и снятия лайка одинаков, различие лишь в одной инструкции,
-    // то нет смысла писать отдельную функцию. Идентичная логика используется мной также на
-    // фронтенде и ни у одного ревьюера еще не было вопросов к подобной реализации.
-    // Лишь для аватара я не придумал что проверять, поэтому для смены аватара отдельная функция.
-    // В функции смены аватара можно было бы проверять по endpoint (req.url),
-    // но я не сделал этого предполагая придирку, что url может измениться.
-    // Изменил название функции на более точное, отражающее ее назначение по переключению лайка.
-    req.method === 'PUT'
-      ? { $addToSet: { likes: req.user._id } }
-      : { $pull: { likes: req.user._id } },
+    { $addToSet: { likes: req.user._id } },
     { new: true })
     .then((card) => {
       res.status(card ? 200 : 404).send(card || { message: 'Нет карточки с таким ID' });
@@ -74,7 +80,23 @@ function toggleLike(req, res) {
     .catch((error) => {
       const code = (error.name === 'ValidationError' || error.name === 'CastError') ? 400 : 500;
       const err = {
-        message: (code === 400) ? error.message : 'Не удалось поставить/снять лайк'
+        message: (code === 400) ? error.message : 'Не удалось поставить лайк',
+      };
+      res.status(code).send(err);
+    });
+}
+
+function dislike(req, res) {
+  CardModel.findByIdAndUpdate(req.params.id,
+    { $pull: { likes: req.user._id } },
+    { new: true })
+    .then((card) => {
+      res.status(card ? 200 : 404).send(card || { message: 'Нет карточки с таким ID' });
+    })
+    .catch((error) => {
+      const code = (error.name === 'ValidationError' || error.name === 'CastError') ? 400 : 500;
+      const err = {
+        message: (code === 400) ? error.message : 'Не удалось удалить лайк',
       };
       res.status(code).send(err);
     });
@@ -85,5 +107,6 @@ module.exports = {
   getCard,
   createCard,
   deleteCard,
-  toggleLike,
+  like,
+  dislike,
 };
